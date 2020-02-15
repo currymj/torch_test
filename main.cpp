@@ -1,28 +1,18 @@
 #include <iostream>
 #include <torch/torch.h>
+#define DOCTEST_CONFIG_IMPLEMENT
+#define DOCTEST_CONFIG_NO_SHORT_MACRO_NAMES
+#include "doctest.h"
+#include "net.h"
 
-struct Net : torch::nn::Module {
-    Net():
-    fc1(register_module("fc1", torch::nn::Linear(784, 64))),
-    fc2(register_module("fc2", torch::nn::Linear(64, 64))),
-    fc3(register_module("fc3", torch::nn::Linear(64, 10)))
-    {
+int main(int argc, char** argv) {
+    doctest::Context context;
+    context.applyCommandLine(argc, argv);
+    int res = context.run(); // run
+    if (context.shouldExit()) {
+        return res;
     }
 
-    torch::Tensor forward(torch::Tensor x) {
-        x = torch::relu(fc1(x.view({-1, 784})));
-        x = torch::dropout(x, 0.5, is_training());
-        x = torch::relu(fc2(x));
-        x = torch::log_softmax(fc3(x), /*dim=*/1);
-        return x;
-    }
-
-    torch::nn::Linear fc1;
-    torch::nn::Linear fc2;
-    torch::nn::Linear fc3;
-};
-
-int main() {
     auto net = Net();
 
     auto dataset = torch::data::datasets::MNIST("./data/MNIST/raw");
@@ -36,11 +26,16 @@ int main() {
             optimizer.zero_grad();
             torch::Tensor predictions = net.forward(batch.data);
             torch::Tensor loss = torch::nll_loss(predictions, batch.target);
+
+            // does this work the same as python torch.autograd.grad?
+            torch::Tensor grads = torch::autograd::grad({loss}, {predictions}, {}, /*retain_graph=*/true)[0];
+
             loss.backward();
             optimizer.step();
             if (++batch_index % 100 == 0) {
-                std::cout << loss.item<float>() << " ";
+                std::cout << loss.item<float>() << std::endl;
             }
         }
     }
-    }
+}
+
