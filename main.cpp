@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
         size_t batch_index = 0;
         for (auto& batch : *dataloader) {
             optimizer.zero_grad();
-            torch::Tensor predictions = net.forward(batch.data);
+            torch::Tensor predictions = net(batch.data);
             torch::Tensor loss = torch::nll_loss(predictions, batch.target);
 
             // does this work the same as python torch.autograd.grad?

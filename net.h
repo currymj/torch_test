@@ -22,6 +22,10 @@ struct Net : torch::nn::Module {
         return x;
     }
 
+    torch::Tensor operator()(torch::Tensor x) {
+        return forward(x);
+    }
+
     torch::nn::Linear fc1;
     torch::nn::Linear fc2;
     torch::nn::Linear fc3;
@@ -31,7 +35,7 @@ DOCTEST_TEST_CASE("doctest test case") {
     Net net = Net();
     DOCTEST_SUBCASE("forward pass has right shape") {
         torch::Tensor x1 = torch::rand({2,784});
-        torch::Tensor result = net.forward(x1);
+        torch::Tensor result = net(x1);
         DOCTEST_CHECK(result.sizes()[0] == 2);
         DOCTEST_CHECK(result.sizes()[1] == 10);
     }
