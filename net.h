@@ -5,6 +5,7 @@
 #ifndef TORCH_TEST_NET_H
 #define TORCH_TEST_NET_H
 
+#include <torch/torch.h>
 #include "doctest.h"
 struct Net : torch::nn::Module {
     Net():
